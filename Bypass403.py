@@ -82,12 +82,12 @@ def main():
         return
 
     path = args.path if args.path else ''
-    path = path.replace("/", "", 1)
+    path = path.lstrip('/')
     thread_count = args.threads if args.threads else 10
 
     threads = []
     for host in hosts:
-        thread = threading.Thread(target=sendRequest, args=(host, path, args.header))
+        thread = threading.Thread(target=sendRequest, args=(host, path, args.header, args.force))
         threads.append(thread)
         thread.start()
 
@@ -106,14 +106,15 @@ def getArgs():
     parser.add_argument('-u', '--url', help='Url for single target testing')
     parser.add_argument('-t', '--threads', type=int, default=10, help='Thread count. Default is 10. 1 Thread per host')
     parser.add_argument('-H', '--header', action='append', help='Custom headers to include in the request, e.g., "-H \'Authorization: token\'"')
+    parser.add_argument('-F', '--force',action='store_true', help='Force Bypass regarless of response code')
     return parser.parse_args()
 
-def sendRequest(host, path, custom_headers):
-    url = host + "/" + "path"
+def sendRequest(host, path, custom_headers, force):
+    url = f"{host}/{path}"
     try:
         headers = {header.split(":")[0]: header.split(":")[1].strip() for header in custom_headers} if custom_headers else {}
         response = requests.get(url, headers=headers)
-        if response.status_code == 403 or response.status_code == 401:
+        if response.status_code in [403,401] or force:
             attemptBypass(host, path, custom_headers)
     except requests.exceptions.ConnectionError:
         pass
